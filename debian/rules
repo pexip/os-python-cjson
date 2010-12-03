@@ -1,0 +1,16 @@
+#!/usr/bin/make -f
+
+PACKAGE=python-cjson
+
+%:
+	dh $@
+
+override_dh_installdocs:
+	dh_installdocs
+	rm -rf debian/$(PACKAGE)-dbg/usr/share/doc/$(PACKAGE)-dbg
+	ln -s $(PACKAGE) debian/$(PACKAGE)-dbg/usr/share/doc/$(PACKAGE)-dbg
+
+override_dh_strip:
+	dh_strip --dbg-package=$(PACKAGE)-dbg
+
+

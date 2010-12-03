@@ -1,0 +1,76 @@
+python-cjson (1.0.5-4build1) natty; urgency=low
+
+  * Rebuild to add support for python 2.7.
+
+ -- Matthias Klose <doko@ubuntu.com>  Fri, 03 Dec 2010 00:10:00 +0000
+
+python-cjson (1.0.5-4) unstable; urgency=high
+
+  * debian/patches:
+    - New patch: 0002-fix-for-CVE-2009-4924
+      Fixing a xss vulnerability by handling ['/'] arguments to cjson.encode
+      properly.
+      Closes: #593302, Fixes: CVE-2009-2924
+
+ -- Bernd Zeimetz <bzed@debian.org>  Mon, 06 Sep 2010 22:14:36 +0200
+
+python-cjson (1.0.5-3) unstable; urgency=high
+
+  [ Christian Kastner ]
+  * debian/source/format
+    - Convert to format 3.0 (quilt)
+  * debian/patches:
+    - New patch 0001-fix-for-CVE-2010-1666
+      Matt Giuca discovered a buffer overflow when encoding wide unicode
+      characters on UCS4 builds. This fix was taken from Ubuntu LP #585274,
+      which he provided.
+      Closes: #587700, Fixes: CVE-2010-1666
+
+ -- Debian Python Modules Team <python-modules-team@lists.alioth.debian.org>  Tue, 06 Jul 2010 23:22:56 +0200
+
+python-cjson (1.0.5-2) unstable; urgency=low
+
+  [ Bernd Zeimetz ]
+  * debian/control:
+    - Changing the priority of the -dbg package to extra
+    - Adding Homepage field, removing pseudo-field from description
+    - Adding Vcs-Svn and Vcs-Browser fields
+    - Updating my email address
+    - Bumping Standards-Version to 3.8.2, no changes needed.
+    - Remove cdbs Build-dep, bump required debhelper version.
+    - Fix several spelling errors in the descriptions
+    - Move the -dbg package into section debug.
+    - Add an extra ~ to the python-all-dev build-dep to make lintian
+      happy.
+    - Enhance the long description of the -dbg package.
+  * debian/rules:
+    - Replace cdbs weirdness by dh.
+  * debian/pycompat:
+    - Drop file, not needed.
+  * debian/python-cjson.install:
+    - Change to install non -dbg files only.
+  * debian/python-cjson-dbg.install:
+    - Install dbg extensions.  
+  * debian/copyright:
+    - Update the licensing of the debian packaging to 2009. 
+
+  [ Sandro Tosi ]
+  * debian/control
+    - uniforming Vcs-Browser field
+  * debian/control
+    - switch Vcs-Browser field to viewsvn
+
+ -- Bernd Zeimetz <bzed@debian.org>  Mon, 27 Jul 2009 22:55:53 +0200
+
+python-cjson (1.0.5-1) unstable; urgency=low
+
+  * New upstream version 
+
+ -- Bernd Zeimetz <bernd@bzed.de>  Fri, 24 Aug 2007 16:12:17 +0200
+
+python-cjson (1.0.4-1) unstable; urgency=low
+
+  * Initial release (Closes: #420606)
+
+ -- Bernd Zeimetz <bernd@bzed.de>  Wed, 15 Aug 2007 00:35:27 +0200
+
