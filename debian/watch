@@ -1,6 +1,5 @@
 # Compulsory line, this is a version 3 file
 version=3
 
-opts="filenamemangle=s/.*\/([^#]*)#.*/$1/" \
-http://cheeseshop.python.org/pypi/python-cjson http://pypi\.python\.org/packages/source/p/python-cjson/python-cjson-(.*)\.tar\.gz#md5=.*
+https://pypi.python.org/packages/source/p/python-cjson/ python-cjson-([0-9.]+)\.tar\.gz
 
