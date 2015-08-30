@@ -3,7 +3,7 @@
 PACKAGE=python-cjson
 
 %:
-	dh $@
+	dh $@ --with python2
 
 override_dh_installdocs:
 	dh_installdocs
