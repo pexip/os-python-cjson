@@ -9,7 +9,7 @@ Standards-Version: 3.8.2
 Homepage: http://cheeseshop.python.org/pypi/python-cjson
 Vcs-Svn: svn://svn.debian.org/python-modules/packages/python-cjson/trunk/
 Vcs-Browser: http://svn.debian.org/viewsvn/python-modules/packages/python-cjson/trunk/
-XS-Pexip-Upstream: http://archive.ubuntu.com/ubuntu/ precise
+XS-Pexip-Upstream: http://ftp.debian.org/debian/ jessie
 
 
 Package: python-cjson
