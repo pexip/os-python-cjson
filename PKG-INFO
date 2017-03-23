@@ -1,12 +1,12 @@
-Metadata-Version: 1.0
+Metadata-Version: 1.1
 Name: python-cjson
-Version: 1.0.5
+Version: 1.1.0
 Summary: Fast JSON encoder/decoder for Python
 Home-page: http://ag-projects.com/
 Author: Dan Pascu
 Author-email: dan@ag-projects.com
 License: LGPL
-Download-URL: http://cheeseshop.python.org/pypi/python-cjson/1.0.5
+Download-URL: http://cheeseshop.python.org/pypi/python-cjson/1.1.0
 Description: This module implements a very fast JSON encoder/decoder for Python.
         
         JSON stands for JavaScript Object Notation and is a text based lightweight
