@@ -197,7 +197,8 @@ class JsonTest(unittest.TestCase):
         self.assertEqual('{"age":44,"name":"Patrick"}', _removeWhitespace(s))
 
     def testWriteFloat(self):
-        self.assertEqual("3.44556677", _removeWhitespace(cjson.encode(3.44556677)))
+        n = 3.44556677
+        self.assertEqual(repr(n), _removeWhitespace(cjson.encode(n)))
 
     def testReadTrue(self):
         self.assertEqual(True, cjson.decode("true"))
@@ -316,6 +317,18 @@ class JsonTest(unittest.TestCase):
 
     def testWriteLong(self):
         self.assertEqual("12345678901234567890", cjson.encode(12345678901234567890))
+
+    def testWriteLongUnicode(self):
+        # This test causes a buffer overrun in cjson 1.0.5, on UCS4 builds.
+        # The string length is only resized for wide unicode characters if
+        # there is less than 12 bytes of space left. Padding with
+        # narrow-but-escaped characters prevents string resizing.
+        # Note that u'\U0001D11E\u1234' also breaks, but sometimes goes
+        # undetected.
+        s = cjson.encode(u'\U0001D11E\U0001D11E\U0001D11E\U0001D11E'
+                         u'\u1234\u1234\u1234\u1234\u1234\u1234')
+        self.assertEqual(r'"\U0001d11e\U0001d11e\U0001d11e\U0001d11e'
+                         r'\u1234\u1234\u1234\u1234\u1234\u1234"', s)
         
 def main():
     unittest.main()

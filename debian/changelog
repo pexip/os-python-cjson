@@ -1,14 +1,17 @@
-python-cjson (1.0.5-4build1pexip1) pexip; urgency=low
+python-cjson (1.1.0-1pexip1) pexip; urgency=low
 
-  * Prepare Pexip packaging
+  * Migrate to Jessie
 
- -- John-Mark Bell <jmb@pexip.com>  Wed, 25 Dec 2013 12:27:15 +0000
+ -- John-Mark Bell <jmb@pexip.com>  Thu, 23 Mar 2017 22:32:04 +0000
 
-python-cjson (1.0.5-4build1) natty; urgency=low
+python-cjson (1.1.0-1) unstable; urgency=low
 
-  * Rebuild to add support for python 2.7.
+  * New upstream version
+  * Removing patch for CVE-2010-1666, applied upstream.
+  * Removing patch for CVE-2009-4924, not a bug. See
+    https://bugzilla.redhat.com/show_bug.cgi?id=CVE-2009-4924
 
- -- Matthias Klose <doko@ubuntu.com>  Fri, 03 Dec 2010 00:10:00 +0000
+ -- Bernd Zeimetz <bzed@debian.org>  Sun, 05 Oct 2014 13:27:53 +0200
 
 python-cjson (1.0.5-4) unstable; urgency=high
 

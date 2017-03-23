@@ -41,6 +41,9 @@ static PyObject *JSON_EncodeError;
 static PyObject *JSON_DecodeError;
 
 
+#define _string(x) #x
+#define string(x) _string(x)
+
 #if PY_VERSION_HEX < 0x02050000
 typedef int Py_ssize_t;
 #define PY_SSIZE_T_MAX INT_MAX
@@ -66,7 +69,7 @@ typedef int Py_ssize_t;
 #define Py_IS_NAN(X) ((X) != (X))
 #endif
 
-#define skipSpaces(d) while(*((d)->ptr) && isspace(*((d)->ptr))) (d)->ptr++
+#define skipSpaces(d) while(isspace(*((d)->ptr))) (d)->ptr++
 
 
 /* ------------------------------ Decoding ----------------------------- */
@@ -250,112 +253,119 @@ decode_nan(JSONData *jsondata)
 }
 
 
+#define skipDigits(ptr) while(isdigit(*(ptr))) (ptr)++
+
 static PyObject*
 decode_number(JSONData *jsondata)
 {
     PyObject *object, *str;
-    int c, is_float, should_stop;
+    int is_float;
     char *ptr;
 
-    // check if we got a floating point number
+    // validate number and check if it's floating point or not
     ptr = jsondata->ptr;
-    is_float = should_stop = False;
-    while (True) {
-        c = *ptr;
-        if (c == 0)
-            break;
-        switch(c) {
-        case '0':
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9':
-        case '-':
-        case '+':
-            break;
-        case '.':
-        case 'e':
-        case 'E':
-            is_float = True;
-            break;
-        default:
-            should_stop = True;
-        }
-        if (should_stop) {
-            break;
-        }
+    is_float = False;
+
+    if (*ptr == '-' || *ptr == '+')
         ptr++;
+
+    if (*ptr == '0') {
+        ptr++;
+        if (isdigit(*ptr))
+            goto number_error;
+    } else if (isdigit(*ptr))
+        skipDigits(ptr);
+    else
+        goto number_error;
+
+    if (*ptr == '.') {
+       is_float = True;
+       ptr++;
+       if (!isdigit(*ptr))
+           goto number_error;
+       skipDigits(ptr);
+    }
+
+    if (*ptr == 'e' || *ptr == 'E') {
+       is_float = True;
+       ptr++;
+       if (*ptr == '+' || *ptr == '-')
+           ptr++;
+       if (!isdigit(*ptr))
+           goto number_error;
+       skipDigits(ptr);
     }
 
     str = PyString_FromStringAndSize(jsondata->ptr, ptr - jsondata->ptr);
     if (str == NULL)
         return NULL;
 
-    if (is_float) {
+    if (is_float)
         object = PyFloat_FromString(str, NULL);
-    } else {
+    else
         object = PyInt_FromString(PyString_AS_STRING(str), NULL, 10);
-    }
 
     Py_DECREF(str);
 
-    if (object == NULL) {
-        PyErr_Format(JSON_DecodeError, "invalid number starting at position "
-                     SSIZE_T_F, (Py_ssize_t)(jsondata->ptr - jsondata->str));
-    } else {
-        jsondata->ptr = ptr;
-    }
+    if (object == NULL)
+        goto number_error;
+
+    jsondata->ptr = ptr;
 
     return object;
+
+number_error:
+    PyErr_Format(JSON_DecodeError, "invalid number starting at position "
+                 SSIZE_T_F, (Py_ssize_t)(jsondata->ptr - jsondata->str));
+    return NULL;
 }
 
+
+typedef enum {
+    ArrayItem_or_ClosingBracket=0,
+    Comma_or_ClosingBracket,
+    ArrayItem,
+    ArrayDone
+} ArrayState;
 
 static PyObject*
 decode_array(JSONData *jsondata)
 {
     PyObject *object, *item;
-    int c, expect_item, items, result;
+    ArrayState next_state;
+    int c, result;
     char *start;
 
     object = PyList_New(0);
 
     start = jsondata->ptr;
     jsondata->ptr++;
-    expect_item = True;
-    items = 0;
-    while (True) {
+
+    next_state = ArrayItem_or_ClosingBracket;
+
+    while (next_state != ArrayDone) {
         skipSpaces(jsondata);
         c = *jsondata->ptr;
         if (c == 0) {
             PyErr_Format(JSON_DecodeError, "unterminated array starting at "
                          "position " SSIZE_T_F,
                          (Py_ssize_t)(start - jsondata->str));
-            goto failure;;
-        } else if (c == ']') {
-            if (expect_item && items>0) {
+            goto failure;
+        }
+        switch (next_state) {
+        case ArrayItem_or_ClosingBracket:
+            if (c == ']') {
+                jsondata->ptr++;
+                next_state = ArrayDone;
+                break;
+            }
+        case ArrayItem:
+            if (c==',' || c==']') {
                 PyErr_Format(JSON_DecodeError, "expecting array item at "
                              "position " SSIZE_T_F,
                              (Py_ssize_t)(jsondata->ptr - jsondata->str));
                 goto failure;
             }
-            jsondata->ptr++;
-            break;
-        } else if (c == ',') {
-            if (expect_item) {
-                PyErr_Format(JSON_DecodeError, "expecting array item at "
-                             "position " SSIZE_T_F,
-                             (Py_ssize_t)(jsondata->ptr - jsondata->str));
-                goto failure;
-            }
-            expect_item = True;
-            jsondata->ptr++;
-            continue;
-        } else {
             item = decode_json(jsondata);
             if (item == NULL)
                 goto failure;
@@ -363,8 +373,25 @@ decode_array(JSONData *jsondata)
             Py_DECREF(item);
             if (result == -1)
                 goto failure;
-            expect_item = False;
-            items++;
+            next_state = Comma_or_ClosingBracket;
+            break;
+        case Comma_or_ClosingBracket:
+            if (c == ']') {
+                jsondata->ptr++;
+                next_state = ArrayDone;
+            } else if (c == ',') {
+                jsondata->ptr++;
+                next_state = ArrayItem;
+            } else {
+                PyErr_Format(JSON_DecodeError, "expecting ',' or ']' at "
+                             "position " SSIZE_T_F,
+                             (Py_ssize_t)(jsondata->ptr - jsondata->str));
+                goto failure;
+            }
+            break;
+        case ArrayDone:
+            // this will never be reached, but keep compilers happy
+            break;
         }
     }
 
@@ -376,21 +403,29 @@ failure:
 }
 
 
+typedef enum {
+    DictionaryKey_or_ClosingBrace=0,
+    Comma_or_ClosingBrace,
+    DictionaryKey,
+    DictionaryDone
+} DictionaryState;
+
 static PyObject*
 decode_object(JSONData *jsondata)
 {
     PyObject *object, *key, *value;
-    int c, expect_key, items, result;
+    DictionaryState next_state;
+    int c, result;
     char *start;
 
     object = PyDict_New();
 
-    expect_key = True;
-    items = 0;
     start = jsondata->ptr;
     jsondata->ptr++;
 
-    while (True) {
+    next_state = DictionaryKey_or_ClosingBrace;
+
+    while (next_state != DictionaryDone) {
         skipSpaces(jsondata);
         c = *jsondata->ptr;
         if (c == 0) {
@@ -398,29 +433,19 @@ decode_object(JSONData *jsondata)
                          "position " SSIZE_T_F,
                          (Py_ssize_t)(start - jsondata->str));
             goto failure;;
-        } else if (c == '}') {
-            if (expect_key && items>0) {
-                PyErr_Format(JSON_DecodeError, "expecting object property name"
-                             " at position " SSIZE_T_F,
-                             (Py_ssize_t)(jsondata->ptr - jsondata->str));
-                goto failure;
+        }
+
+        switch (next_state) {
+        case DictionaryKey_or_ClosingBrace:
+            if (c == '}') {
+                jsondata->ptr++;
+                next_state = DictionaryDone;
+                break;
             }
-            jsondata->ptr++;
-            break;
-        } else if (c == ',') {
-            if (expect_key) {
-                PyErr_Format(JSON_DecodeError, "expecting object property name"
-                             "at position " SSIZE_T_F,
-                             (Py_ssize_t)(jsondata->ptr - jsondata->str));
-                goto failure;
-            }
-            expect_key = True;
-            jsondata->ptr++;
-            continue;
-        } else {
+        case DictionaryKey:
             if (c != '"') {
-                PyErr_Format(JSON_DecodeError, "expecting property name in "
-                             "object at position " SSIZE_T_F,
+                PyErr_Format(JSON_DecodeError, "expecting object property name "
+                             "at position " SSIZE_T_F,
                              (Py_ssize_t)(jsondata->ptr - jsondata->str));
                 goto failure;
             }
@@ -440,6 +465,15 @@ decode_object(JSONData *jsondata)
                 jsondata->ptr++;
             }
 
+            skipSpaces(jsondata);
+            if (*jsondata->ptr==',' || *jsondata->ptr=='}') {
+                PyErr_Format(JSON_DecodeError, "expecting object property "
+                             "value at position " SSIZE_T_F,
+                             (Py_ssize_t)(jsondata->ptr - jsondata->str));
+                Py_DECREF(key);
+                goto failure;
+            }
+
             value = decode_json(jsondata);
             if (value == NULL) {
                 Py_DECREF(key);
@@ -451,8 +485,25 @@ decode_object(JSONData *jsondata)
             Py_DECREF(value);
             if (result == -1)
                 goto failure;
-            expect_key = False;
-            items++;
+            next_state = Comma_or_ClosingBrace;
+            break;
+        case Comma_or_ClosingBrace:
+            if (c == '}') {
+                jsondata->ptr++;
+                next_state = DictionaryDone;
+            } else if (c == ',') {
+                jsondata->ptr++;
+                next_state = DictionaryKey;
+            } else {
+                PyErr_Format(JSON_DecodeError, "expecting ',' or '}' at "
+                             "position " SSIZE_T_F,
+                             (Py_ssize_t)(jsondata->ptr - jsondata->str));
+                goto failure;
+            }
+            break;
+        case DictionaryDone:
+            // this will never be reached, but keep compilers happy
+            break;
         }
     }
 
@@ -500,10 +551,9 @@ decode_json(JSONData *jsondata)
     case '-':
         if (*(jsondata->ptr+1) == 'I') {
             object = decode_inf(jsondata);
-        } else {
-            object = decode_number(jsondata);
+            break;
         }
-        break;
+        // fall through
     case '0':
     case '1':
     case '2':
@@ -613,17 +663,36 @@ encode_unicode(PyObject *unicode)
     char *p;
 
     static const char *hexdigit = "0123456789abcdef";
+#ifdef Py_UNICODE_WIDE
+    const Py_ssize_t expandsize = 10;
+#else
+    const Py_ssize_t expandsize = 6;
+#endif
+
+    /* Initial allocation is based on the longest-possible unichr
+       escape.
+
+       In wide (UTF-32) builds '\U00xxxxxx' is 10 chars per source
+       unichr, so in this case it's the longest unichr escape. In
+       narrow (UTF-16) builds this is five chars per source unichr
+       since there are two unichrs in the surrogate pair, so in narrow
+       (UTF-16) builds it's not the longest unichr escape.
+
+       In wide or narrow builds '\uxxxx' is 6 chars per source unichr,
+       so in the narrow (UTF-16) build case it's the longest unichr
+       escape.
+    */
 
     s = PyUnicode_AS_UNICODE(unicode);
     size = PyUnicode_GET_SIZE(unicode);
 
-    if (size > (PY_SSIZE_T_MAX-2-1)/6) {
+    if (size > (PY_SSIZE_T_MAX-2-1)/expandsize) {
         PyErr_SetString(PyExc_OverflowError,
                         "unicode object is too large to make repr");
         return NULL;
     }
 
-    repr = PyString_FromStringAndSize(NULL, 2 + 6*size + 1);
+    repr = PyString_FromStringAndSize(NULL, 2 + expandsize*size + 1);
     if (repr == NULL)
         return NULL;
 
@@ -644,15 +713,6 @@ encode_unicode(PyObject *unicode)
 #ifdef Py_UNICODE_WIDE
         /* Map 21-bit characters to '\U00xxxxxx' */
         else if (ch >= 0x10000) {
-            int offset = p - PyString_AS_STRING(repr);
-
-            /* Resize the string if necessary */
-            if (offset + 12 > PyString_GET_SIZE(repr)) {
-                if (_PyString_Resize(&repr, PyString_GET_SIZE(repr) + 100))
-                    return NULL;
-                p = PyString_AS_STRING(repr) + offset;
-            }
-
             *p++ = '\\';
             *p++ = 'U';
             *p++ = hexdigit[(ch >> 28) & 0x0000000F];
@@ -752,7 +812,7 @@ encode_unicode(PyObject *unicode)
  * Python's tupleobject.c with the following differences:
  *
  * - it uses encode_object() to get the object's JSON reprezentation.
- * - it uses [] as decorations isntead of () (to masquerade as a JSON array).
+ * - it uses [] as decorations instead of () (to masquerade as a JSON array).
  */
 
 static PyObject*
@@ -1019,7 +1079,7 @@ encode_object(PyObject *object)
                 return PyString_FromString("-Infinity");
             }
         } else {
-            return PyObject_Str(object);
+            return PyObject_Repr(object);
         }
     } else if (PyInt_Check(object) || PyLong_Check(object)) {
         return PyObject_Str(object);
@@ -1075,7 +1135,7 @@ JSON_decode(PyObject *self, PyObject *args, PyObject *kwargs)
     }
 
     jsondata.ptr = jsondata.str;
-    jsondata.end = jsondata.str + strlen(jsondata.str);
+    jsondata.end = jsondata.str + PyString_GET_SIZE(str);
     jsondata.all_unicode = all_unicode;
 
     object = decode_json(&jsondata);
@@ -1150,7 +1210,7 @@ initcjson(void)
     PyModule_AddObject(m, "DecodeError", JSON_DecodeError);
 
     // Module version (the MODULE_VERSION macro is defined by setup.py)
-    PyModule_AddStringConstant(m, "__version__", MODULE_VERSION);
+    PyModule_AddStringConstant(m, "__version__", string(MODULE_VERSION));
 
 }
 
