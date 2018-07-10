@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Pexip AS <packaging@pexip.com>
 XSBC-Pexip-Original-Maintainer: Debian Python Modules Team <python-modules-team@lists.alioth.debian.org>
 XSBC-Pexip-Original-Uploaders: Bernd Zeimetz <bzed@debian.org>, Dan Pascu <dan@ag-projects.com>
-Build-Depends: debhelper (>= 7.3.5), python-all-dev (>= 2.4.4-1~), python-all-dbg, python-support (>= 0.7.1)
+Build-Depends: debhelper (>= 7.3.5), python-all-dev (>= 2.4.4-1~), python-all-dbg, dh-python
 Standards-Version: 3.8.2
 Homepage: http://cheeseshop.python.org/pypi/python-cjson
 Vcs-Svn: svn://anonscm.debian.org/python-modules/packages/python-cjson/trunk/

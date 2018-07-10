@@ -1,3 +1,10 @@
+python-cjson (1.1.0-2) unstable; urgency=medium
+
+  * Team upload.
+  * Switch to dh_python2 (Closes: #786294).
+
+ -- Luca Falavigna <dktrkranz@debian.org>  Sun, 30 Aug 2015 11:01:54 +0200
+
 python-cjson (1.1.0-1pexip1) pexip; urgency=low
 
   * Migrate to Jessie
