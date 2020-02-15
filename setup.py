@@ -2,7 +2,7 @@
 
 from distutils.core import setup, Extension
 
-__version__ = "1.1.0"
+__version__ = "1.2.1"
 
 macros = [('MODULE_VERSION', __version__)]
 
@@ -10,8 +10,7 @@ setup(name         = "python-cjson",
       version      = __version__,
       author       = "Dan Pascu",
       author_email = "dan@ag-projects.com",
-      url          = "http://ag-projects.com/",
-      download_url = "http://cheeseshop.python.org/pypi/python-cjson/%s" % __version__,
+      url          = "https://github.com/AGProjects/python-cjson",
       description  = "Fast JSON encoder/decoder for Python",
       long_description = open('README').read(),
       license      = "LGPL",
