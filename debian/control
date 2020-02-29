@@ -3,12 +3,12 @@ Section: python
 Priority: optional
 Maintainer: Pexip AS <packaging@pexip.com>
 XSBC-Pexip-Original-Maintainer: Debian Python Modules Team <python-modules-team@lists.alioth.debian.org>
-XSBC-Pexip-Original-Uploaders: Bernd Zeimetz <bzed@debian.org>, Dan Pascu <dan@ag-projects.com>
+XSBC-Pexip-Original-Uploaders: Bernd Zeimetz <bzed@debian.org>
 Build-Depends: debhelper (>= 7.3.5), python-all-dev (>= 2.4.4-1~), python-all-dbg, dh-python
 Standards-Version: 3.8.2
-Homepage: http://cheeseshop.python.org/pypi/python-cjson
-Vcs-Svn: svn://anonscm.debian.org/python-modules/packages/python-cjson/trunk/
-Vcs-Browser: http://anonscm.debian.org/viewvc/python-modules/packages/python-cjson/trunk/
+Homepage: https://github.com/AGProjects/python-cjson
+Vcs-Git: https://salsa.debian.org/python-team/modules/python-cjson.git
+Vcs-Browser: https://salsa.debian.org/python-team/modules/python-cjson
 XS-Pexip-Upstream: http://ftp.debian.org/debian/ buster
 
 
@@ -31,7 +31,6 @@ Description: Very fast JSON encoder/decoder for Python
 
 Package: python-cjson-dbg
 Architecture: any
-Priority: extra
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, python-cjson (= ${binary:Version}), python-dbg
 Section: debug
 Description: Very fast JSON encoder/decoder for Python (debug extension)

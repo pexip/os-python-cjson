@@ -1,3 +1,22 @@
+python-cjson (1.2.1-1) unstable; urgency=medium
+
+  [ Ondřej Nový ]
+  * Fixed VCS URL (https)
+  * d/control: Set Vcs-* to salsa.debian.org
+  * d/control: Deprecating priority extra as per policy 4.0.1
+  * d/changelog: Remove trailing whitespaces
+  * Convert git repository from git-dpm to gbp layout
+
+  [ Bernd Zeimetz ]
+  * [23d6283] Update upstream source from tag 'upstream/1.2.1'
+    Update to upstream version '1.2.1'
+    with Debian dir 5196d14a473c756220dbdef95dfd3721ebaa89dc
+  * [b57b89f] Updating Homepage
+  * [aa6d0b6] Add debian/.gitlab-ci.yml
+  * [967dc34] Removing Dan Pascu from Uploaders
+
+ -- Bernd Zeimetz <bzed@debian.org>  Sat, 02 Feb 2019 23:57:59 +0100
+
 python-cjson (1.1.0-2pexip1) pexip; urgency=medium
 
   * Migrate to Stretch
@@ -72,9 +91,9 @@ python-cjson (1.0.5-2) unstable; urgency=low
   * debian/python-cjson.install:
     - Change to install non -dbg files only.
   * debian/python-cjson-dbg.install:
-    - Install dbg extensions.  
+    - Install dbg extensions.
   * debian/copyright:
-    - Update the licensing of the debian packaging to 2009. 
+    - Update the licensing of the debian packaging to 2009.
 
   [ Sandro Tosi ]
   * debian/control
@@ -86,7 +105,7 @@ python-cjson (1.0.5-2) unstable; urgency=low
 
 python-cjson (1.0.5-1) unstable; urgency=low
 
-  * New upstream version 
+  * New upstream version
 
  -- Bernd Zeimetz <bernd@bzed.de>  Fri, 24 Aug 2007 16:12:17 +0200
 
@@ -95,4 +114,3 @@ python-cjson (1.0.4-1) unstable; urgency=low
   * Initial release (Closes: #420606)
 
  -- Bernd Zeimetz <bernd@bzed.de>  Wed, 15 Aug 2007 00:35:27 +0200
-

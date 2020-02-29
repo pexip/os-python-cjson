@@ -1,10 +1,6 @@
-/*
- * Copyright (C) 2006-2007 Dan Pascu. See LICENSE for details.
- * Author: Dan Pascu <dan@ag-projects.com>
- *
- * Fast JSON encoder/decoder implementation for Python
- *
- */
+
+// Fast JSON encoder/decoder implementation for Python
+//
 
 #include <Python.h>
 #include <stddef.h>
@@ -526,10 +522,16 @@ decode_json(JSONData *jsondata)
         PyErr_SetString(JSON_DecodeError, "empty JSON description");
         return NULL;
     case '{':
+        if (Py_EnterRecursiveCall(" while decoding a JSON object"))
+            return NULL;
         object = decode_object(jsondata);
+        Py_LeaveRecursiveCall();
         break;
     case '[':
+        if (Py_EnterRecursiveCall(" while decoding a JSON array"))
+            return NULL;
         object = decode_array(jsondata);
+        Py_LeaveRecursiveCall();
         break;
     case '"':
         object = decode_string(jsondata);
@@ -1084,11 +1086,26 @@ encode_object(PyObject *object)
     } else if (PyInt_Check(object) || PyLong_Check(object)) {
         return PyObject_Str(object);
     } else if (PyList_Check(object)) {
-        return encode_list(object);
+        PyObject *result;
+        if (Py_EnterRecursiveCall(" while encoding a JSON array from a Python list"))
+            return NULL;
+        result = encode_list(object);
+        Py_LeaveRecursiveCall();
+        return result;
     } else if (PyTuple_Check(object)) {
-        return encode_tuple(object);
+        PyObject *result;
+        if (Py_EnterRecursiveCall(" while encoding a JSON array from a Python tuple"))
+            return NULL;
+        result = encode_tuple(object);
+        Py_LeaveRecursiveCall();
+        return result;
     } else if (PyDict_Check(object)) { // use PyMapping_Check(object) instead? -Dan
-        return encode_dict(object);
+        PyObject *result;
+        if (Py_EnterRecursiveCall(" while encoding a JSON object"))
+            return NULL;
+        result = encode_dict(object);
+        Py_LeaveRecursiveCall();
+        return result;
     } else {
         PyErr_SetString(JSON_EncodeError, "object is not JSON encodable");
         return NULL;
